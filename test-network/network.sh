@@ -349,6 +349,21 @@ function networkDown() {
   fi
 }
 
+
+## Call the script to set environment variables
+function setEnv() {
+
+  scripts/env.sh
+
+  if [ $? -ne 0 ]; then
+    fatalln "Setting environment variables failed"
+  else
+    infoln "Setting environment variables finished"
+  fi
+
+  exit 0
+}
+
 # Obtain the OS and Architecture string that will be used to select the correct
 # native binaries for your platform, e.g., darwin-amd64 or linux-amd64
 OS_ARCH=$(echo "$(uname -s | tr '[:upper:]' '[:lower:]' | sed 's/mingw64_nt.*/windows/')-$(uname -m | sed 's/x86_64/amd64/g')" | awk '{print tolower($0)}')
@@ -362,7 +377,7 @@ CLI_DELAY=3
 # channel name defaults to "mychannel"
 CHANNEL_NAME="mychannel"
 # chaincode name defaults to "basic"
-CC_NAME="basic"
+CC_NAME="trapeze"
 # chaincode path defaults to "NA"
 CC_SRC_PATH="NA"
 # endorsement policy defaults to "NA". This would allow chaincodes to use the majority default policy.
@@ -382,8 +397,8 @@ COMPOSE_FILE_COUCH_ORG3=addOrg3/docker/docker-compose-couch-org3.yaml
 # use this as the default docker-compose yaml definition for org3
 COMPOSE_FILE_ORG3=addOrg3/docker/docker-compose-org3.yaml
 #
-# use go as the default language for chaincode
-CC_SRC_LANGUAGE="go"
+# use javascript as the default language for chaincode
+CC_SRC_LANGUAGE="javascript"
 # Chaincode version
 CC_VERSION="1.0"
 # Chaincode definition sequence
@@ -515,6 +530,8 @@ elif [ "$MODE" == "restart" ]; then
   infoln "Restarting network"
 elif [ "$MODE" == "deployCC" ]; then
   infoln "deploying chaincode on channel '${CHANNEL_NAME}'"
+elif [ "$MODE" == "env" ]; then
+  infoln "Setting up enviroment variables"
 else
   printHelp
   exit 1
@@ -528,6 +545,8 @@ elif [ "${MODE}" == "deployCC" ]; then
   deployCC
 elif [ "${MODE}" == "down" ]; then
   networkDown
+elif [ "${MODE}" == "env" ]; then
+  setEnv
 else
   printHelp
   exit 1
