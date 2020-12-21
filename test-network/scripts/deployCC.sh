@@ -61,7 +61,7 @@ if [ "$CC_SRC_PATH" = "NA" ]; then
     println $'\e[0;32m'application$'\e[0m' chaincode
     CC_SRC_PATH="../application"
   else
-    fatalln "The chaincode name ${CC_NAME} is not supported by this script. Supported chaincode names are: basic, events, ledger, private, sbe, secured"
+    fatalln "The chaincode name ${CC_NAME} is not supported by this script. Supported chaincode names are: basic, events, ledger, private, sbe, secured and trapeze"
   fi
 
   # now see what language it is written in
