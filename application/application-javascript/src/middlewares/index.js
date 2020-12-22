@@ -14,7 +14,7 @@ class MiddlewaresBase {
         app.use(express.json());
         app.use(cors());
         app.use(helmet());
-        app.use(morgan("dev", { stream: new Logger().accessStreamer }))
+        app.use(morgan("combined", { stream: new Logger().accessStreamer }))
 
         // Routes
         app.use(new BaseRoutes().routes);
