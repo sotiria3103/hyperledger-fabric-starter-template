@@ -12,7 +12,7 @@ const dbOptions = {
 
 exports.dbConnection = async () => {
     return new Promise((resolve, reject) => {
-        mongoose.connect(config.db_uri, dbOptions, (error) => {
+        mongoose.connect(config.database_uri, dbOptions, (error) => {
             if (error) reject({ ...error, message: "Unable to connect to database" })
 
             resolve("Connected to database successfully");

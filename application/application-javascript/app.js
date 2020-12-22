@@ -140,8 +140,8 @@ dbConnection()
     .then(() => {
         console.log("Connected to database");
         app.listen(config.port, () => {
-            console.log(`Server is up and running at http://localhost:${config.port}`);
-        })
+            console.log(`API server listening on ${config.host}:${config.port}, in ${config.env} mode`);
+        });
     })
     .catch(error => {
         console.log("Failed to connect with database");
