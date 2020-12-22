@@ -5,6 +5,7 @@ const { buildCAClient, registerAndEnrollUser, enrollAdmin } = require('../../tes
 const { buildCCPOrg1, buildWallet } = require('../../test-application/javascript/AppUtil.js');
 const config = require("./src/utils/config");
 const { dbConnection } = require("./src/utils/connection")
+const { shutDown } = require("./src/utils/helpers")
 
 
 const channelName = 'mychannel';
@@ -133,17 +134,19 @@ const express = require("express");
 const MiddlewaresBase = require("./src/middlewares")
 
 const app = express();
+let server;
 
 app.use(MiddlewaresBase.configuration)
 
 dbConnection()
     .then(() => {
         console.log("Connected to database");
-        app.listen(config.port, () => {
+        server = app.listen(config.port, () => {
             console.log(`API server listening on ${config.host}:${config.port}, in ${config.env} mode`);
         });
     })
     .catch(error => {
         console.log("Failed to connect with database");
         console.log("Shutting down");
+        shutDown(server);
     });
