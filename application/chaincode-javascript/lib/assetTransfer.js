@@ -11,125 +11,122 @@ const { Contract } = require('fabric-contract-api');
 class AssetTransfer extends Contract {
 
     async InitLedger(ctx) {
-        const assets = [
+        const policies = [
             {
-                ID: 'asset1',
-                Color: 'blue',
-                Size: 5,
-                Owner: 'Tomoko',
-                AppraisedValue: 300,
-            },
-            {
-                ID: 'asset2',
-                Color: 'red',
-                Size: 5,
-                Owner: 'Brad',
-                AppraisedValue: 400,
-            },
-            {
-                ID: 'asset3',
-                Color: 'green',
-                Size: 10,
-                Owner: 'Jin Soo',
-                AppraisedValue: 500,
-            },
-            {
-                ID: 'asset4',
-                Color: 'yellow',
-                Size: 10,
-                Owner: 'Max',
-                AppraisedValue: 600,
-            },
-            {
-                ID: 'asset5',
-                Color: 'black',
-                Size: 15,
-                Owner: 'Adriana',
-                AppraisedValue: 700,
-            },
-            {
-                ID: 'asset6',
-                Color: 'white',
-                Size: 15,
-                Owner: 'Michel',
-                AppraisedValue: 800,
-            },
+                PolicyId: "1",
+                CreationDate: "2023-01-24T09:00:08+01:00",
+                HasDataSubject: "Jane Smith",
+                OwnerID: ctx.clientIdentity.getID().split("::")[1].split("CN=")[1],
+                HasPersonalDataCategory: "NavigationData",
+                HasProcessing: "Read",
+                HasPurpose: "NonCommercial",
+                HasRecipient: "recipient identification",
+                HasStorage: {
+                    HasLocation: "Europe",
+                    HasDuration: "365",
+                    DurationInDays: "365",
+                },
+            }
         ];
 
-        for (const asset of assets) {
-            asset.docType = 'asset';
-            await ctx.stub.putState(asset.ID, Buffer.from(JSON.stringify(asset)));
-            console.info(`Asset ${asset.ID} initialized`);
+        for (const policy of policies) {
+            policy.docType = 'policy';
+            await ctx.stub.putState(policy.ID, Buffer.from(JSON.stringify(policy)));
+            console.info(`Policy ${policy.ID} initialized`);
         }
     }
 
-    // CreateAsset issues a new asset to the world state with given details.
-    async CreateAsset(ctx, id, color, size, owner, appraisedValue) {
-        const asset = {
-            ID: id,
-            Color: color,
-            Size: size,
-            Owner: owner,
-            AppraisedValue: appraisedValue,
+    // CreatePolicy issues a new policy to the world state with given details.
+    async CreatePolicy(ctx, id, creationDate, dataSubject, personalDataCategory, processing, purpose, recipient, location, duration) {
+        const policyExists = await this.PolicyExists(ctx, id);
+
+        if (policyExists) throw new Error(`The policy ${id} already exists`);
+
+        const policy = {
+            PolicyId: id,
+            CreationDate: creationDate,
+            HasDataSubject: dataSubject,
+            OwnerID: ctx.clientIdentity.getID().split("::")[1].split("CN=")[1],
+            HasPersonalDataCategory: personalDataCategory,
+            HasProcessing: processing,
+            HasPurpose: purpose,
+            HasRecipient: recipient,
+            HasStorage: {
+                HasLocation: location,
+                HasDuration: duration,
+                DurationInDays: duration,
+            },
         };
-        ctx.stub.putState(id, Buffer.from(JSON.stringify(asset)));
-        return JSON.stringify(asset);
+        ctx.stub.putState(id, Buffer.from(JSON.stringify(policy)));
+        return JSON.stringify(policy);
     }
 
-    // ReadAsset returns the asset stored in the world state with given id.
-    async ReadAsset(ctx, id) {
-        const assetJSON = await ctx.stub.getState(id); // get the asset from chaincode state
-        if (!assetJSON || assetJSON.length === 0) {
-            throw new Error(`The asset ${id} does not exist`);
+    // ReadPolicy returns the policy stored in the world state with given id.
+    async ReadPolicy(ctx, id) {
+        const policyJSON = await ctx.stub.getState(id); // get the policy from chaincode state
+        if (!policyJSON || policyJSON.length === 0) {
+            throw new Error(`The policy ${id} does not exist`);
         }
-        return assetJSON.toString();
+        return policyJSON.toString();
     }
 
-    // UpdateAsset updates an existing asset in the world state with provided parameters.
-    async UpdateAsset(ctx, id, color, size, owner, appraisedValue) {
-        const exists = await this.AssetExists(ctx, id);
-        if (!exists) {
-            throw new Error(`The asset ${id} does not exist`);
-        }
+    // UpdatePolicy updates an existing policy in the world state with provided parameters.
+    async UpdatePolicy(ctx, id, creationDate, dataSubject, personalDataCategory, processing, purpose, recipient, location, duration) {
+        const exists = await this.PolicyExists(ctx, id);
+        if (!exists) throw new Error(`The asset ${id} does not exist`);
 
-        // overwriting original asset with new asset
-        const updatedAsset = {
-            ID: id,
-            Color: color,
-            Size: size,
-            Owner: owner,
-            AppraisedValue: appraisedValue,
+        const policyString = await this.ReadPolicy(ctx, id);
+        const policy = JSON.parse(policyString);
+
+        if (asset.OwnerID !== ctx.clientIdentity.getID().split("::")[1].split("CN=")[1]) throw new Error(`Asset ${id} does not belong to this user. Update is prohibited`);
+
+        // overwriting original policy with new policy
+        const updatedPolicy = {
+            PolicyId: id,
+            CreationDate: creationDate,
+            HasDataSubject: dataSubject,
+            OwnerID: ctx.clientIdentity.getID().split("::")[1].split("CN=")[1],
+            HasPersonalDataCategory: personalDataCategory,
+            HasProcessing: processing,
+            HasPurpose: purpose,
+            HasRecipient: recipient,
+            HasStorage: {
+                HasLocation: location,
+                HasDuration: duration,
+                DurationInDays: duration,
+            },
         };
-        return ctx.stub.putState(id, Buffer.from(JSON.stringify(updatedAsset)));
+        return ctx.stub.putState(id, Buffer.from(JSON.stringify(updatedPolicy)));
     }
 
-    // DeleteAsset deletes an given asset from the world state.
-    async DeleteAsset(ctx, id) {
-        const exists = await this.AssetExists(ctx, id);
-        if (!exists) {
-            throw new Error(`The asset ${id} does not exist`);
-        }
+    // DeletePolicy deletes an given policy from the world state.
+    async DeletePolicy(ctx, id) {
+        const exists = await this.PolicyExists(ctx, id);
+        if (!exists) throw new Error(`The policy ${id} does not exist`);
+
         return ctx.stub.deleteState(id);
     }
 
-    // AssetExists returns true when asset with given ID exists in world state.
-    async AssetExists(ctx, id) {
-        const assetJSON = await ctx.stub.getState(id);
-        return assetJSON && assetJSON.length > 0;
+    // PolicyExists returns true when asset with given ID exists in world state.
+    async PolicyExists(ctx, id) {
+        const policyJSON = await ctx.stub.getState(id);
+        return policyJSON && policyJSON.length > 0;
     }
+
+    // Transfer of asset is deactivated. Policies belong to users and only they can  moderate them.
 
     // TransferAsset updates the owner field of asset with given id in the world state.
-    async TransferAsset(ctx, id, newOwner) {
-        const assetString = await this.ReadAsset(ctx, id);
-        const asset = JSON.parse(assetString);
-        asset.Owner = newOwner;
-        return ctx.stub.putState(id, Buffer.from(JSON.stringify(asset)));
-    }
+    // async TransferPolicy(ctx, id, newOwner) {
+    //     const policyString = await this.ReadPolicy(ctx, id);
+    //     const policy = JSON.parse(policyString);
+    //     policy.Owner = newOwner;
+    //     return ctx.stub.putState(id, Buffer.from(JSON.stringify(policy)));
+    // }
 
-    // GetAllAssets returns all assets found in the world state.
-    async GetAllAssets(ctx) {
+    // GetAllPolicies returns all policies found in the world state.
+    async GetAllPolicies(ctx) {
         const allResults = [];
-        // range query with empty string for startKey and endKey does an open-ended query of all assets in the chaincode namespace.
+        // range query with empty string for startKey and endKey does an open-ended query of all policies in the chaincode namespace.
         const iterator = await ctx.stub.getStateByRange('', '');
         let result = await iterator.next();
         while (!result.done) {
