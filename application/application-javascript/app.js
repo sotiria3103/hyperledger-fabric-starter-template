@@ -12,12 +12,9 @@ app.use(MiddlewaresBase.configuration)
 dbConnection()
     .then(() => {
         console.log("Connected to database");
-        server = app.listen(config.port, () => {
-            console.log(`API server listening on ${config.host}:${config.port}, in ${config.env} mode`);
-        });
+        server = app.listen(config.port, () => { console.log(`API server listening on ${config.host}:${config.port}, in ${config.env} mode`); });
     })
     .catch(error => {
-        console.log("Failed to connect with database");
-        console.log("Shutting down");
+        server = app.listen(config.port, () => { console.log("Failed to connect with database. Shutting down now"); });
         shutDown(server);
     });
