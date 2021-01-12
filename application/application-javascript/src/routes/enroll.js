@@ -13,7 +13,9 @@ class EnrollRoutes {
     get routes() {
         const controller = this._userController;
 
-        app.post("/user", controller.enrollUser);
+        app.post("/admin", controller._enrollAdmin);
+
+        app.post("/user", controller._enrollUser);
 
         app.use('**', async (request, response, next) => {
             return response.status(404).json({ message: "Not found!" })
