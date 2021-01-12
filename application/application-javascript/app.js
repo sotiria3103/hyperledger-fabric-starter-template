@@ -7,7 +7,7 @@ const MiddlewaresBase = require("./src/middlewares")
 const app = express();
 let server;
 
-app.use(MiddlewaresBase.configuration)
+app.use(MiddlewaresBase.configuration);
 
 dbConnection()
     .then(() => {
