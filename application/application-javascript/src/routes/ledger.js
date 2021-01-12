@@ -10,7 +10,7 @@ const app = express();
 
 const channelName = "mychannel";
 const chaincodeName = "trapeze";
-const walletPath = path.join(__dirname, "wallet");
+const walletPath = path.join(__dirname, "..", "wallet");
 
 class LedgerRoutes {
     get routes() {
