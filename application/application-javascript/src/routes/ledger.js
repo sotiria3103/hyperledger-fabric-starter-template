@@ -18,7 +18,7 @@ class LedgerRoutes {
             const { userID: org1UserId, organization: mspOrg1 } = request.body;
 
             console.log(`Ledger and Admin and user: ${org1UserId} are about to be initialized for organization ${mspOrg1}`);
-            // return response.status(200).json({ path: path.join(__dirname, "..", "..", "wallet") })
+
             try {
                 const ccp = buildCCPOrg1();
                 const caClient = buildCAClient(FabricCAServices, ccp, "ca.org1.example.com");
@@ -29,8 +29,6 @@ class LedgerRoutes {
 
                 await registerAndEnrollUser(caClient, wallet, mspOrg1, org1UserId, "org1.department1");
 
-                // return response.status(200).json({ wallet, identity: org1UserId, discovery: { enabled: true, asLocalhost: true } })
-
                 const gateway = new Gateway();
                 try {
                     await gateway.connect(ccp, {
@@ -40,26 +38,25 @@ class LedgerRoutes {
                     });
 
                     const network = await gateway.getNetwork(channelName);
-
                     const contract = network.getContract(chaincodeName);
 
-                    console.log("\n--> Submit Transaction: InitLedger, function creates the initial set of assets on the ledger");
-
+                    console.log("\n--> Submit Transaction: InitLedger, function creates the initial set of policies on the ledger");
                     await contract.submitTransaction("InitLedger");
                     console.log("*** Result: committed");
 
-                    console.log("\n--> Evaluate Transaction: GetAllAssets, function returns all the current assets on the ledger");
+                    return response.status(201).json({ message: `Ledger, admin and user: ${org1UserId} initialized for organisation ${mspOrg1}` });
 
-                    let result = await contract.evaluateTransaction("GetAllPolicies");
-                    // console.log(`*** Result: ${prettyJSONString(result.toString())}`);
-                    response.status(200).send({
-                        message: `Successful Hyperledger, Admin and Organization set up`,
-                        ledger: JSON.parse(result),
-                    });
+                    // console.log("\n--> Evaluate Transaction: GetAllAssets, function returns all the current assets on the ledger");
+
+                    // let result = await contract.evaluateTransaction("GetAllPolicies");
+
+                    // return response.status(200).json({
+                    //     message: `Successful Hyperledger, Admin and Organization set up`,
+                    //     ledger: JSON.parse(result),
+                    // });
                 } catch (error) {
-                    response.status(400).send({
-                        message: `Failed Successful Hyperledger, Admin and Organization set up`,
-                        // ledger: JSON.parse(result),
+                    return response.status(400).json({
+                        message: `Failed to set up the ledger`,
                         error
                     });
                 }
@@ -68,14 +65,12 @@ class LedgerRoutes {
                 }
             } catch (error) {
                 console.error(`******** FAILED to run the application: ${error}`);
-                res.status(500).send({ message: error.message });
+                return response.status(500).json({ message: error.message });
             }
-
-            response.status(200).json({ message: `Ledger and Admin and user: ${org1UserId} are about to be initialized for organisation ${mspOrg1}` })
         });
 
         app.use('**', async (request, response, next) => {
-            response.status(404).json({ message: "Not found!" })
+            return response.status(404).json({ message: "Not found!" })
         });
 
         return app;
