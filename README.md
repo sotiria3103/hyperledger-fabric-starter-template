@@ -26,7 +26,7 @@
 
 > node clean_wallet.js
 
-> node api.js
+> node app.js
 
 ###---- f o r  m o n g o ----
 #### check status
