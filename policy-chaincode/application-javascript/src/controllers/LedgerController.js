@@ -87,12 +87,6 @@ exports.createPolicy = async (req, res) => {
     try {
         const ccp = buildCCPOrg1();
 
-        const caClient = buildCAClient(
-            FabricCAServices,
-            ccp,
-            "ca.org1.example.com"
-        );
-
         const wallet = await buildWallet(Wallets, walletPath);
         const gateway = new Gateway();
 
@@ -155,12 +149,6 @@ exports.updatePolicy = async (req, res) => {
     try {
         const ccp = buildCCPOrg1();
 
-        const caClient = buildCAClient(
-            FabricCAServices,
-            ccp,
-            "ca.org1.example.com"
-        );
-
         const wallet = await buildWallet(Wallets, walletPath);
         const gateway = new Gateway();
 
@@ -214,12 +202,6 @@ exports.readPolicy = async (req, res) => {
     try {
         const ccp = buildCCPOrg1();
 
-        const caClient = buildCAClient(
-            FabricCAServices,
-            ccp,
-            "ca.org1.example.com"
-        );
-
         const wallet = await buildWallet(Wallets, walletPath);
         const gateway = new Gateway();
 
@@ -237,6 +219,75 @@ exports.readPolicy = async (req, res) => {
             let result = await contract.evaluateTransaction('ReadPolicy',policyID);
             console.log(`*** Result: ${prettyJSONString(result.toString())}`);
             res.status(200).send({ ledger: JSON.parse(result) });
+        } finally {
+            gateway.disconnect();
+        }
+    } catch (error) {
+        console.error(`******** FAILED to run the application: ${error}`);
+        res.status(500).send({ message: error.message });
+    }
+}
+
+exports.deletePolicy = async (req, res) => {
+    // Extract the User ID for HyperLedger Fabric Interaction
+    const org1UserId = req.body.userID;
+    const policyID = req.body.policyID;
+
+    try {
+        const ccp = buildCCPOrg1();
+
+        const wallet = await buildWallet(Wallets, walletPath);
+        const gateway = new Gateway();
+
+        try {
+            await gateway.connect(ccp, {
+                wallet,
+                identity: org1UserId,
+                discovery: { enabled: true, asLocalhost: true }, // using asLocalhost as this gateway is using a fabric network deployed locally
+            });
+
+            const network = await gateway.getNetwork(channelName);
+            const contract = network.getContract(chaincodeName);
+
+            console.log('\n--> Submit Transaction: DeletePolicy, function deletes policy with policyID');
+            await contract.submitTransaction('DeletePolicy',policyID);
+            // console.log(`*** Result: ${prettyJSONString(result.toString())}`);
+            res.status(200).send("result: deleted");
+        } finally {
+            gateway.disconnect();
+        }
+    } catch (error) {
+        console.error(`******** FAILED to run the application: ${error}`);
+        res.status(500).send({ message: error.message });
+    }
+}
+
+exports.transferPolicy = async (req, res) => {
+    // Extract the User ID for HyperLedger Fabric Interaction
+    const org1UserId = req.body.userID;
+    const policyID = req.body.policyID;
+    const newOwner = req.body.newOwner;
+
+    try {
+        const ccp = buildCCPOrg1();
+
+        const wallet = await buildWallet(Wallets, walletPath);
+        const gateway = new Gateway();
+
+        try {
+            await gateway.connect(ccp, {
+                wallet,
+                identity: org1UserId,
+                discovery: { enabled: true, asLocalhost: true }, // using asLocalhost as this gateway is using a fabric network deployed locally
+            });
+
+            const network = await gateway.getNetwork(channelName);
+            const contract = network.getContract(chaincodeName);
+
+            console.log('\n--> Submit Transaction: TransferPolicy, function transfers policy to new owner: ' + newOwner, policyID);
+            await contract.submitTransaction('TransferPolicy',policyID, newOwner);
+            // console.log(`*** Result: ${prettyJSONString(result.toString())}`);
+            res.status(200).send("result: committed");
         } finally {
             gateway.disconnect();
         }

@@ -17,14 +17,38 @@ class PolicyChaincode extends Contract {
                 modified: 1608288951,
                 id: "177347GHFGWB9",
                 hasDataSubject: "John",
+                hasDataController: "Local Goverment", /* new */
                 OwnerID: ctx.clientIdentity.getID().split("::")[1].split("CN=")[1],
+// svd:Activity, svd:Anonymized, svd:AudiovisualActivity,
+// svd:Computer, svd:Content, svd:Demographic, svd:Derived,
+// svd:Financial, svd:Government, svd:Health, svd:Interactive, svd:Judicial, svd:Location, svd:Navigation, svd:Online,
+// svd:OnlineActivity, svd:Physical, svd:PhysicalActivity, svd:Political,
+// svd:Preference, svd:Profile, svd:Purchase, svd:Social, svd:State,
+// svd:Statistical, svd:TelecomActivity, svd:UniqueId,
+                hasData: "Activity", /* new */
                 hasPersonalDataCategory: "NavigationData",
-                hasProcessing: "Read",
+// svpr:Aggregate, svpr:Analyze, svpr:Anonymize, svpr:Collect,
+// svpr:Copy, svpr:Derive, svpr:Move, svpr:Query, svpr:Transfer
+                hasProcessing: "Collect",
+// svpu:Account, svpu:Admin, svpu:AnyContact, svpu:Arts,
+// svpu:AuxPurpose, svpu:Browsing, svpu:Charity, svpu:Communicate,
+// svpu:Current, svpu:Custom, svpu:Delivery, svpu:Develop,
+// svpu:Downloads, svpu:Education, svpu:Feedback, svpu:Finmgt,
+// svpu:Gambling, svpu:Gaming, svpu:Government, svpu:Health,
+// svpu:Historical, svpu:Login, svpu:Marketing, svpu:News,
+// svpu:OtherContact, svpu:Payment, svpu:Sales, svpu:Search, 
+// svpu:State, svpu:Tailoring, svpu:Telemarketing
                 hasPurpose: "NonCommercial",
-                hasRecipient: "null || recepient_name_1 || other_term",
+// svr:Delivery, svr:OtherRecipient, svr:Ours, svr:Public, svr:Same,
+// svr:Unrelated
+                hasRecipient: "Public",
                 hasStorage: {
-                    hasLocation: "Europe",
-                    hasDuration: "365",
+// svl:ControllerServer, svl:EU, svl:EULike, svl:ThirdCountries,
+// svl:OurServers, svl:ProcessorServers, svl:ThirdParty
+                    hasLocation: "EU",
+// svdu:BusinessPractices, svdu:Indefinitely,
+// svdu:LegalRequirement, svdu:StatedPurpose
+                    hasDuration: "365", // [1,12]
                     durationInDays: "365",
                 },
             },
@@ -33,13 +57,15 @@ class PolicyChaincode extends Contract {
                 modified: 1608288951,
                 id: "177347GHFGWB1",
                 hasDataSubject: "Beth",
+                hasDataController: "Local Goverment", /* new */
                 OwnerID: ctx.clientIdentity.getID().split("::")[1].split("CN=")[1],
+                hasData: "Statistical", /* new */
                 hasPersonalDataCategory: "PersonalData",
-                hasProcessing: "Read",
+                hasProcessing: "Analyze",
                 hasPurpose: "Analysis",
-                hasRecipient: "null || recepient_name_1 || other_term",
+                hasRecipient: "OtherRecipient",
                 hasStorage: {
-                    hasLocation: "Asia",
+                    hasLocation: "EULike",
                     hasDuration: "365",
                     durationInDays: "365",
                 },
@@ -49,13 +75,15 @@ class PolicyChaincode extends Contract {
                 modified: 1608288951,
                 id: "177347GHFGWB0",
                 hasDataSubject: "Syd",
+                hasDataController: "Local Goverment", /* new */
                 OwnerID: ctx.clientIdentity.getID().split("::")[1].split("CN=")[1],
+                hasData: "Statistical", /* new */
                 hasPersonalDataCategory: "PseudonymizedData",
-                hasProcessing: "Read",
+                hasProcessing: "Aggregate",
                 hasPurpose: "NonCommercial",
-                hasRecipient: "recepient_name_1",
+                hasRecipient: "Delivery",
                 hasStorage: {
-                    hasLocation: "USA",
+                    hasLocation: "ThirdCountries",
                     hasDuration: "365",
                     durationInDays: "365",
                 },
@@ -82,7 +110,9 @@ class PolicyChaincode extends Contract {
             modified: 1608288951,
             id: id,
             hasDataSubject: hasDataSubject,
+            hasDataController: "Local Goverment", /* new */
             OwnerID: ctx.clientIdentity.getID().split("::")[1].split("CN=")[1],
+            hasData: "Statistical", /* new */
             hasPersonalDataCategory: hasPersonalDataCategory,
             hasProcessing: hasProcessing,
             hasPurpose: hasPurpose,
@@ -126,7 +156,9 @@ class PolicyChaincode extends Contract {
             modified: 1608288951,
             id: id,
             hasDataSubject: hasDataSubject,
+            hasDataController: "Local Goverment", /* new */
             OwnerID: ctx.clientIdentity.getID().split("::")[1].split("CN=")[1],
+            hasData: "Statistical", /* new */
             hasPersonalDataCategory: hasPersonalDataCategory,
             hasProcessing: hasProcessing,
             hasPurpose: hasPurpose,
@@ -167,8 +199,13 @@ class PolicyChaincode extends Contract {
     async TransferPolicy(ctx, id, newOwner) {
         const policyString = await this.ReadPolicy(ctx, id);
         const policy = JSON.parse(policyString);
-        policy.hasDataSubject = newOwner;
-        return ctx.stub.putState(id, Buffer.from(JSON.stringify(policy)));
+        
+        if (policy.OwnerID == ctx.clientIdentity.getID().split("::")[1].split("CN=")[1]) {
+            policy.hasDataSubject = newOwner;
+            return ctx.stub.putState(id, Buffer.from(JSON.stringify(policy)));
+        } else {
+            throw new Error(`policy ${id} does not belong to this user. Update is prohibited`);
+        }
     }
 
     // GetAllPolicys returns all policies found in the world state.
